@@ -14,4 +14,4 @@ after your "InstallAssistant.pkg" downloaded
 ```sh
 sh -c "$(curl -fsSL "https://raw.githubusercontent.com/sinojerk/installassistant/main/installassistant")" -- build <path to your InstallAssistant.pkg>
 ```
-will build then "Install macOS XXX.app" for you
+will build the "Install macOS XXX.app" for you
