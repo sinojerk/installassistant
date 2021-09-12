@@ -178,7 +178,7 @@ fkey && /<\/dict>/ {
 }'
 
 printf "%2s  %-10s  %-8s  %-10s  %-10s  %s\n" "#" "ProductID" "Version" "Build" "Post Date" "Title"
-curl -sL "$catalog_url"|gzcat|awk -v IAINDEX="0" -v IAVERBOSE="${VERBOSE}" "${awk_catalog_parser}"
+curl -sL "${catalog_url%.gz}"|awk -v IAINDEX="0" -v IAVERBOSE="${VERBOSE}" "${awk_catalog_parser}"
 
 if [ $VERBOSE -gt 0 ]; then
     echo 'Next Steps:'
