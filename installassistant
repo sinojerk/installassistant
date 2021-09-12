@@ -31,9 +31,7 @@ selected_catalog_url() {
     if [ -f '/System/Library/PrivateFrameworks/Seeding.framework/Resources/SeedCatalogs.plist' ]; then
         system_catalog_url $1
     else
-        echo "https://swscan.apple.com/content/catalogs/others/"\
-        "index-12$(echo "${SEED_SUFFIX_BY_PROGRAM}" | sed -nE "s|$1:(.*)|\1|p" $1)"\
-        "-12-10.16-10.15-10.14-10.13-10.12-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1.sucatalog.gz"
+        echo "https://swscan.apple.com/content/catalogs/others/index-12$(echo "${SEED_SUFFIX_BY_PROGRAM}"|sed -nE "s|$1:(.*)|\1|p" $1)-12-10.16-10.15-10.14-10.13-10.12-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1.sucatalog.gz"
     fi
 }
 
