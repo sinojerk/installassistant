@@ -1,0 +1,190 @@
+#!/bin/zsh
+APPNAME=$0
+VERBOSE=0
+SEED_SUFFIX_BY_PROGRAM="CustomerSeed:customerseed
+DeveloperSeed:seed
+PublicSeed:beta
+"
+show_usage() {
+    echo "usage: $APPNAME [-c <catalog-url>] [-s <SeedProgram:CustomerSeed|DeveloperSeed|PublicSeed>] [-v]"
+}
+invalid_option() {
+    echo "$APPNAME: invalid option -- $1"
+    show_usage
+    exit 1 
+}
+invalid_argument() {
+    echo "$APPNAME: invalid argument -- $1" 
+    show_usage
+    exit 1
+}
+system_catalog_url() {
+    awk -v prog="<key>$1</key>" '$0~prog{
+    getline
+    gsub(/.*<string>/, "")
+    gsub(/<\/string>.*/, "")
+    print
+    exit }' '/System/Library/PrivateFrameworks/Seeding.framework/Resources/SeedCatalogs.plist'
+}
+
+selected_catalog_url() {
+    if [ -f '/System/Library/PrivateFrameworks/Seeding.framework/Resources/SeedCatalogs.plist' ]; then
+        system_catalog_url $1
+    else
+        echo "https://swscan.apple.com/content/catalogs/others/"\
+        "index-12$(echo "${SEED_SUFFIX_BY_PROGRAM}" | sed -nE "s|$1:(.*)|\1|p" $1)"\
+        "-12-10.16-10.15-10.14-10.13-10.12-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1.sucatalog.gz"
+    fi
+}
+
+build_app() {
+    pkg_path=${1:-"./InstallAssistant.pkg"}
+    if [[ ! -f "${pkg_path}" ]]; then
+	    echo "file '${pkg_path}' not exist.">&2
+	    exit 1
+    fi
+    if [ 'xar!' != $(head -c 4 ${pkg_path}) ]; then
+	    echo "'${pkg_path}' isn't a xar file.">&2
+	    exit 1
+    fi
+
+    xar -x Scripts Payload -f ${pkg_path} 2>/dev/null
+    if [ $? -ne 0 ]; then
+	    echo "fail to extr '${pkg_path}'.">&2
+	    exit 1
+    fi
+
+    cpio -i < Scripts && rm -rf Scripts
+    cpio -i < Payload && rm -rf Payload
+    PACKAGE_PATH="${pkg_path}" "$PWD/postinstall.zsh" "${pkg_path}" "$PWD/" "$PWD/" "$PWD/"
+    rm -rf postinstall*
+}
+
+while [[ $# -gt 0 ]]; do
+    key="$1"
+    case $key in
+        -s|--seed)
+            SEED="$2"
+            shift
+            shift
+            ;;
+        -c|--catalog)
+            CATALOG="$2"
+            shift
+            shift
+            ;;
+        -h|--help)
+            show_usage
+            exit
+            ;;
+        -v|--verbose)
+            VERBOSE=$((VERBOSE+1))
+            shift
+            ;;
+        build)
+            build_app "$2"
+            exit
+            ;;
+        --*)
+            invalid_option "${key#--}" 
+            ;;
+        -*)
+            invalid_option "${key#-}"
+            ;;
+        *)
+            invalid_argument "${key}"
+            ;;
+    esac
+done
+
+opseed=${SEED:-"CustomerSeed"}
+
+if [ "$CATALOG" ]; then
+    catalog_url="$CATALOG"
+else
+    if echo ":CustomerSeed:DeveloperSeed:PublicSeed:" | grep -q "${opseed}"; then
+        catalog_url="$(selected_catalog_url "$opseed")"
+    else
+        show_usage
+        exit 1
+    fi
+fi
+
+awk_catalog_parser='
+/<key>[0-9]{3}-[0-9]+<\/key>/{
+    fkey=1 
+    fdict=0
+    gsub(/.*<key>/,"")
+    gsub(/<\/key>.*/,"")
+    key=$0
+    next
+}
+fkey && /<dict>/ {
+    fdict++;
+    next
+}
+fkey && /<string>.*InstallAssistant.pkg<\/string>/{
+    fia=1
+    gsub(/.*<string>/,"")
+    gsub(/<\/string>.*/,"")
+    ia=$0
+    next
+}
+fia && /<string>.*English.dist<\/string>/ {
+    gsub(/.*<string>/,"")
+    gsub(/<\/string>.*/,"")
+    dist=$0
+    next
+}
+fia && /PostDate/ {
+    getline
+    gsub(/.*<date>/,"")
+    gsub(/[A-Z].*<\/date>.*/,"")
+    date=$0
+    next
+}
+fkey && /<\/dict>/ {
+    fdict--;
+    if (fdict==0) { 
+        if (fia) {
+            IAINDEX++
+            cmd="curl -Ls "dist
+            while ((cmd|getline dist_l) > 0) {
+                if (dist_l ~/<title>.*<\/title>/) { 
+                    gsub(/.*<[^<>\/]+>/, "", dist_l)
+                    gsub(/<\/[^<>\/]+>.*/, "", dist_l)
+                    title=dist_l
+                }
+                else if (dist_l ~/<key>BUILD<\/key>/) {
+                    (cmd|getline dist_l)
+                    gsub(/.*<[^<>\/]+>/, "", dist_l)
+                    gsub(/<\/[^<>\/]+>.*/, "", dist_l)
+                    build=dist_l
+                }
+                else if (dist_l ~/<key>VERSION<\/key>/) {
+                    (cmd|getline dist_l)
+                    gsub(/.*<[^<>\/]+>/, "", dist_l)
+                    gsub(/<\/[^<>\/]+>.*/, "", dist_l)
+                    version=dist_l
+                }
+            }
+            close(cmd)
+
+            printf "%2d  %-10s  %-8s  %-10s  %-10s  %s\n", IAINDEX, key, version, build, date, title
+            if (IAVERBOSE) printf "%s\n\n",ia
+        }
+        fkey=0
+        fia=0
+    }
+    next
+}'
+
+printf "%2s  %-10s  %-8s  %-10s  %-10s  %s\n" "#" "ProductID" "Version" "Build" "Post Date" "Title"
+curl -sL "$catalog_url"|gzcat|awk -v IAINDEX="0" -v IAVERBOSE="${VERBOSE}" "${awk_catalog_parser}"
+
+if [ $VERBOSE -gt 0 ]; then
+    echo 'Next Steps:'
+    echo '  1. download "InstallAssistant.pkg" use your favorite tool such as `curl`, `aria2`, `wget` etc.'
+    echo '  2. build "Install macOS xxx.app" with:'
+    echo "     $APPNAME build <path_to_InstallAssistant.pkg>"
+fi
