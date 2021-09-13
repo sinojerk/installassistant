@@ -5,6 +5,7 @@ SEED_SUFFIX_BY_PROGRAM="CustomerSeed:customerseed
 DeveloperSeed:seed
 PublicSeed:beta
 "
+OS_SEEDCATALOGS_PLIST='/System/Library/PrivateFrameworks/Seeding.framework/Resources/SeedCatalogs.plist'
 show_usage() {
     echo "usage: $APPNAME [-c <catalog-url>] [-s <SeedProgram:CustomerSeed|DeveloperSeed|PublicSeed>] [-v]"
 }
@@ -24,14 +25,15 @@ system_catalog_url() {
     gsub(/.*<string>/, "")
     gsub(/<\/string>.*/, "")
     print
-    exit }' '/System/Library/PrivateFrameworks/Seeding.framework/Resources/SeedCatalogs.plist'
+    exit }' "$OS_SEEDCATALOGS_PLIST"
 }
 
 selected_catalog_url() {
-    if [ -f '/System/Library/PrivateFrameworks/Seeding.framework/Resources/SeedCatalogs.plist' ]; then
+    if [ -f "$OS_SEEDCATALOGS_PLIST" ]; then
         system_catalog_url $1
     else
-        echo "https://swscan.apple.com/content/catalogs/others/index-12$(echo "${SEED_SUFFIX_BY_PROGRAM}"|sed -nE "s|$1:(.*)|\1|p")-12-10.16-10.15-10.14-10.13-10.12-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1.sucatalog.gz"
+    	suffix="$(echo "${SEED_SUFFIX_BY_PROGRAM}"|sed -nE "s|$1:(.*)|\1|p")"
+        echo "https://swscan.apple.com/content/catalogs/others/index-12${suffix}-12-10.16-10.15-10.14-10.13-10.12-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1.sucatalog.gz"
     fi
 }
 
