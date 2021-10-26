@@ -1,7 +1,7 @@
-#!/bin/zsh
+#!/bin/sh
 APPNAME=$0
 if ! echo "$0"|grep -q "installassistant"; then
-  APPNAME="installassistant"
+  APPNAME='sh -c "$(curl -fsSL "https://raw.githubusercontent.com/sinojerk/installassistant/main/installassistant")" --'
 fi
 VERBOSE=0
 SEED_SUFFIX_BY_PROGRAM="CustomerSeed:customerseed
