@@ -56,7 +56,9 @@ build_app() {
 
     cpio -i < Scripts && rm -rf Scripts
     cpio -i < Payload && rm -rf Payload
-    PACKAGE_PATH="${pkg_path}" "$PWD/postinstall.zsh" "${pkg_path}" "$PWD/" "$PWD/" "$PWD/"
+    find "$PWD"/postinstall* -depth 0 -type f | while read -r script;do
+        PACKAGE_PATH="${pkg_path}" "$script" "${pkg_path}" "$PWD/" "$PWD/" "$PWD/"
+    done
     rm -rf postinstall*
 }
 
