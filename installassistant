@@ -1,5 +1,5 @@
 #!/bin/zsh
-APPNAME=$0
+APPNAME=${0:-"installassistant"}
 VERBOSE=0
 SEED_SUFFIX_BY_PROGRAM="CustomerSeed:customerseed
 DeveloperSeed:seed
