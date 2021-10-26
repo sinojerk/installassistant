@@ -1,5 +1,8 @@
 #!/bin/zsh
-APPNAME=${0:-"installassistant"}
+APPNAME=$0
+if ! echo "$0"|grep -q "installassistant"; then
+  APPNAME="installassistant"
+fi
 VERBOSE=0
 SEED_SUFFIX_BY_PROGRAM="CustomerSeed:customerseed
 DeveloperSeed:seed
