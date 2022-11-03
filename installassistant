@@ -50,19 +50,30 @@ build_app() {
 	    echo "'${pkg_path}' isn't a xar file.">&2
 	    exit 1
     fi
+    
+    [ -e .iatmp ] && rm -rf .iatmp
+    [ -e .iatmp.pkg ] && rm -rf .iatmp.pkg
 
-    xar -x Scripts Payload -f ${pkg_path} 2>/dev/null
+    mkdir .iatmp
+
+    xar --exclude SharedSupport.dmg -C .iatmp -xf "$pkg_path" 2>/dev/null
     if [ $? -ne 0 ]; then
 	    echo "fail to extr '${pkg_path}'.">&2
 	    exit 1
     fi
 
-    cpio -i < Scripts && rm -rf Scripts
-    cpio -i < Payload && rm -rf Payload
+    pkgutil --flatten .iatmp .iatmp.pkg
+    rm -rf .iatmp
+    pkgutil --expand-full .iatmp.pkg .iatmp
+    [ ! -d Applications ] && mkdir Applications
+    mv .iatmp/Payload/Applications/*.app ./Applications/
+    cpio -i < .iatmp/Scripts/Scripts
+    rm -rf .iatmp
+    
     find "$PWD"/postinstall* -depth 0 -type f | while read -r script;do
         PACKAGE_PATH="${pkg_path}" "$script" "${pkg_path}" "$PWD/" "$PWD/" "$PWD/"
     done
-    rm -rf postinstall*
+    rm -rf postinstall* .iatmp.pkg
 }
 
 while [[ $# -gt 0 ]]; do
