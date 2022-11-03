@@ -27,3 +27,5 @@ will build the "Install macOS XXX.app" for you
   ```sh
   ("/Volumes/IA/Applications/install macOS <xxx>.app/Contents/MacOS/InstallAssistant_springboard" &)
   ```
+
+## want file Integrity check for `InstallAssistant.pkg` after download, see [sinojerk/cnkl](https://github.com/sinojerk/cnkl)
