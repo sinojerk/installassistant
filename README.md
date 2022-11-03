@@ -29,3 +29,4 @@ will build the "Install macOS XXX.app" for you
   ```
 
 ## want file Integrity check for `InstallAssistant.pkg` after download, see [sinojerk/cnkl](https://github.com/sinojerk/cnkl)
+need to download `InstallAssistant.pkg.integrityDataV1` file at the same time, the url is InstallAssistant.pkg file url by append `.integrityDataV1`
