@@ -36,7 +36,7 @@ selected_catalog_url() {
         system_catalog_url $1
     else
     	suffix="$(echo "${SEED_SUFFIX_BY_PROGRAM}"|sed -nE "s|$1:(.*)|\1|p")"
-        echo "https://swscan.apple.com/content/catalogs/others/index-12${suffix}-12-10.16-10.15-10.14-10.13-10.12-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1.sucatalog.gz"
+        echo "https://swscan.apple.com/content/catalogs/others/index-15${suffix}-15-14-13-12-10.16-10.15-10.14-10.13-10.12-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1.sucatalog.gz"
     fi
 }
 
@@ -196,7 +196,7 @@ fkey && /<\/dict>/ {
 }'
 
 printf "%2s  %-10s  %-8s  %-10s  %-10s  %s\n" "#" "ProductID" "Version" "Build" "Post Date" "Title"
-curl -sL "${catalog_url%.gz}"|awk -v IAINDEX="0" -v IAVERBOSE="${VERBOSE}" "${awk_catalog_parser}"
+curl -sL "${catalog_url}"|gunzip|awk -v IAINDEX="0" -v IAVERBOSE="${VERBOSE}" "${awk_catalog_parser}"
 
 if [ $VERBOSE -gt 0 ]; then
     echo 'Next Steps:'
