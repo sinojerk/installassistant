@@ -1,8 +1,8 @@
 # installassistant
 InstallAssistant, a shell script to get the "InstallAssistant.pkg" and build "Install macOS XXX.app" for macOS you can even use it in the Recovery mode
-## macOS 15 beta
+## macOS 26 beta
 ```sh
-installassistant -v -c https://swscan.apple.com/content/catalogs/others/index-15seed-15-14-13-12-10.16-10.15-10.14-10.13-10.12-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1.sucatalog.gz
+installassistant -v -c https://swscan.apple.com/content/catalogs/others/index-26seed-26-15-14-13-12-10.16-10.15-10.14-10.13-10.12-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1.sucatalog.gz
 ```
 
 ## how to use:
